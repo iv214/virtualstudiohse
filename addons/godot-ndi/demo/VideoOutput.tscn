@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddr3hiaft61tl"]
+
+[ext_resource type="VideoStream" uid="uid://djpk24xapxnq4" path="res://addons/godot-ndi/demo/Liftoff_Space_Shuttle_Atlantis.ogv" id="1_utmvk"]
+
+[node name="Canvas" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("1_utmvk")
+autoplay = true
+loop = true
+
+[node name="NDIOutput" type="NDIOutput" parent="."]
+name = "Godot (Video)"

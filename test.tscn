@@ -1,0 +1,69 @@
+[gd_scene load_steps=10 format=3 uid="uid://cb3l4vhpmmd5f"]
+
+[ext_resource type="Texture2D" uid="uid://0bpfv7cdkld0" path="res://assets/KPNO-Drone-360-2-CC2.jpg" id="1_6uqi0"]
+[ext_resource type="Script" uid="uid://dgccavlbds52i" path="res://addons/onvif_camera_hook/OnvifCameraHookNode.cs" id="1_37kl0"]
+[ext_resource type="Texture2D" uid="uid://b0uholafhcp3n" path="res://assets/test_background.png" id="2_8uh7m"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_mf4mk"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_ppyta"]
+panorama = ExtResource("1_6uqi0")
+
+[sub_resource type="Sky" id="Sky_ykrsh"]
+sky_material = SubResource("PanoramaSkyMaterial_ppyta")
+
+[sub_resource type="Environment" id="Environment_mf4mk"]
+background_mode = 2
+background_color = Color(1, 1, 1, 1)
+sky = SubResource("Sky_ykrsh")
+ambient_light_source = 2
+ambient_light_color = Color(0.856067, 0.856067, 0.856067, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6uqi0"]
+albedo_texture = ExtResource("2_8uh7m")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ppyta"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.932425, 0, -0.361364, 0, 1, 0, 0.361364, 0, 0.932425, -0.689915, -0.189349, -2.45408)
+mesh = SubResource("BoxMesh_mf4mk")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_mf4mk")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+size = Vector2i(1024, 768)
+render_target_update_mode = 4
+
+[node name="NDIOutput" type="NDIOutput" parent="SubViewport"]
+name = "NDIOutput1"
+
+[node name="Camera3D1" type="Camera3D" parent="SubViewport"]
+transform = Transform3D(0.807994, 0.0016748, -0.589188, 0.0017453, 0.999985, 0.00523596, 0.589188, -0.00525894, 0.807979, -2.78717, 0, 0)
+
+[node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D1"]
+script = ExtResource("1_37kl0")
+OriginAngle = Vector2(-30, 0)
+metadata/_custom_type_script = "uid://dgccavlbds52i"
+
+[node name="SubViewport2" type="SubViewport" parent="."]
+size = Vector2i(1024, 768)
+render_target_update_mode = 4
+
+[node name="NDIOutput" type="NDIOutput" parent="SubViewport2"]
+name = "NDIOutput2"
+
+[node name="Camera3D2" type="Camera3D" parent="SubViewport2"]
+transform = Transform3D(1, 0, 0, 0, 0.976672, 0.214735, 0, -0.214735, 0.976672, -1.05087, 1.11317, -0.00778008)
+
+[node name="OnvifCameraHookNode" type="Node" parent="SubViewport2/Camera3D2"]
+script = ExtResource("1_37kl0")
+metadata/_custom_type_script = "uid://dgccavlbds52i"
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, -2.1541e-07, -16.083, 0, 4.928, -7.0301e-07, 9.27359, 0, -4.7875)
+visible = false
+material_override = SubResource("StandardMaterial3D_6uqi0")
+mesh = SubResource("PlaneMesh_ppyta")
