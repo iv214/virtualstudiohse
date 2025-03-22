@@ -1,7 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://cb3l4vhpmmd5f"]
+[gd_scene load_steps=11 format=3 uid="uid://cb3l4vhpmmd5f"]
 
 [ext_resource type="Texture2D" uid="uid://0bpfv7cdkld0" path="res://assets/KPNO-Drone-360-2-CC2.jpg" id="1_6uqi0"]
 [ext_resource type="Script" uid="uid://dgccavlbds52i" path="res://addons/onvif_camera_hook/OnvifCameraHookNode.cs" id="1_37kl0"]
+[ext_resource type="Script" uid="uid://6fty6rppvfhv" path="res://MeshInstance3d.cs" id="1_ppyta"]
 [ext_resource type="Texture2D" uid="uid://b0uholafhcp3n" path="res://assets/test_background.png" id="2_8uh7m"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_mf4mk"]
@@ -29,6 +30,7 @@ albedo_texture = ExtResource("2_8uh7m")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.932425, 0, -0.361364, 0, 1, 0, 0.361364, 0, 0.932425, -0.689915, -0.189349, -2.45408)
 mesh = SubResource("BoxMesh_mf4mk")
+script = ExtResource("1_ppyta")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_mf4mk")
