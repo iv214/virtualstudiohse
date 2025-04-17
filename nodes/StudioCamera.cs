@@ -4,6 +4,14 @@ using System;
 public partial class StudioCamera : Node3D
 {
     private SubViewport _subviewport;
-    private Node _ndioutput;
+    private NDIOutput _ndioutput;
+    
+    [Export]
+    public string NDIOutputName {
+        get => _ndioutput.OutputName;
+        set {
+            _ndioutput.OutputName = value;
+        }
+    }
     
 }

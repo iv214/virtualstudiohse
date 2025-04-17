@@ -43,10 +43,13 @@ render_target_update_mode = 4
 name = "NDIOutput1"
 
 [node name="Camera3D1" type="Camera3D" parent="SubViewport"]
-transform = Transform3D(0.807994, 0.0016748, -0.589188, 0.0017453, 0.999985, 0.00523596, 0.589188, -0.00525894, 0.807979, -2.78717, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.78717, 0, 0)
 
 [node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D1"]
 script = ExtResource("1_37kl0")
+ConnectionIP = "172.18.191.196:80"
+ConnectionUsername = "admin"
+ConnectionPassword = "Supervisor"
 metadata/_custom_type_script = "uid://dgccavlbds52i"
 
 [node name="SubViewport2" type="SubViewport" parent="."]
@@ -57,7 +60,7 @@ render_target_update_mode = 4
 name = "NDIOutput2"
 
 [node name="Camera3D2" type="Camera3D" parent="SubViewport2"]
-transform = Transform3D(1, 0, 0, 0, 0.976672, 0.214735, 0, -0.214735, 0.976672, -1.05087, 1.11317, -0.00778008)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.364054, -0.493832, 1.00577)
 
 [node name="OnvifCameraHookNode" type="Node" parent="SubViewport2/Camera3D2"]
 script = ExtResource("1_37kl0")
