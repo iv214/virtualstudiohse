@@ -61,7 +61,7 @@ public partial class OnvifCameraHookNode : Node
 		while (!Engine.IsEditorHint()) 
 		{
 			await GetCameraRotation();
-			Thread.Sleep(250);
+			//await Task.Delay(200);
 			GD.Print("Rotation:", GodotCamera.Rotation.X, GodotCamera.Rotation.Y);
 		}
 		GD.Print("Exited");
@@ -72,12 +72,12 @@ public partial class OnvifCameraHookNode : Node
 		{
 			
 			var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
-			var pantiltx = response.Position.PanTilt.x;
-			var pantilty = response.Position.PanTilt.y;
+			float pantilty = (float)(response.Position.PanTilt.x * 180 / Math.PI);
+			float pantiltx = (float)(response.Position.PanTilt.y * 90 / Math.PI);
 			//var pantilts = response.Position.PanTilt.space;
 			//var zoomx = response.Position.Zoom.x;
 			//var zooms = response.Position.Zoom.space;
-			GodotCamera.SetGlobalRotationDegrees(new Vector3(OriginAngle.X - pantiltx, OriginAngle.Y - pantilty, 0));
+			GodotCamera.SetGlobalRotationDegrees(new Vector3(OriginAngle.X + pantiltx, OriginAngle.Y - pantilty, 0));
 		}
 	}
 }
