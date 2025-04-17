@@ -47,7 +47,6 @@ transform = Transform3D(0.807994, 0.0016748, -0.589188, 0.0017453, 0.999985, 0.0
 
 [node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D1"]
 script = ExtResource("1_37kl0")
-OriginAngle = Vector2(-30, 0)
 metadata/_custom_type_script = "uid://dgccavlbds52i"
 
 [node name="SubViewport2" type="SubViewport" parent="."]

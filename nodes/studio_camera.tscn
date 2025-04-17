@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://jv47wpgaua0i"]
+
+[ext_resource type="Script" uid="uid://dgccavlbds52i" path="res://addons/onvif_camera_hook/OnvifCameraHookNode.cs" id="1_5ripa"]
+[ext_resource type="Script" uid="uid://24gu8vyh84rw" path="res://nodes/StudioCamera.cs" id="1_q7y50"]
+
+[node name="StudioCamera" type="Node3D"]
+script = ExtResource("1_q7y50")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+size = Vector2i(1024, 768)
+render_target_update_mode = 4
+
+[node name="NDIOutput" type="NDIOutput" parent="SubViewport"]
+name = "NDIOutput"
+
+[node name="Camera3D1" type="Camera3D" parent="SubViewport"]
+
+[node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D1"]
+script = ExtResource("1_5ripa")
+metadata/_custom_type_script = "uid://dgccavlbds52i"
