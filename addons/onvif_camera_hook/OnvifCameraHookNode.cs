@@ -22,7 +22,7 @@ public partial class OnvifCameraHookNode : Node
 	public Vector2 Angle;
 	public float Width;
 	public float Height;
-	bool run = false
+	bool run = true;
 #nullable enable
 	public Camera? ONVIFCamera { get; set; } = null;
 	public Camera3D? GodotCamera { get; set; } = null;
@@ -48,10 +48,10 @@ public partial class OnvifCameraHookNode : Node
 				await GetProfileToken();
 				if (ConnectionProfileToken.Length != 0)
 				{
-					var resolution = await GetCameraResolution();
-					if (resolution != null)
-						GD.Print($"Resolution: {resolution.Value.X}x{resolution.Value.Y}");
-					await PrintPtzLimits();
+					//var resolution = await GetCameraResolution();
+					//if (resolution != null)
+					//	GD.Print($"Resolution: {resolution.Value.X}x{resolution.Value.Y}");
+					//await PrintPtzLimits();
 					SynchronizeRotation();
 				}
 			}
@@ -110,7 +110,7 @@ public partial class OnvifCameraHookNode : Node
 		{
 			
 			var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
-			float pantilty = (float)(response.Position.PanTilt.x * 180 / Math.PI);
+			float pantilty = (float)(response.Position.PanTilt.x * 360 / Math.PI);
 			float pantiltx = (float)(response.Position.PanTilt.y * 90 / Math.PI);
 			//var pantilts = response.Position.PanTilt.space;
 			//var zoomx = response.Position.Zoom.x;
