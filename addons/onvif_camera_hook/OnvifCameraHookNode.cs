@@ -20,6 +20,9 @@ public partial class OnvifCameraHookNode : Node
 	[Export]
 	public Vector2 OriginAngle { get; set; } = new Vector2(0, 0);
 	public Vector2 Angle;
+	public float Width;
+	public float Height;
+
 #nullable enable
 	public Camera? ONVIFCamera { get; set; } = null;
 	public Camera3D? GodotCamera { get; set; } = null;
