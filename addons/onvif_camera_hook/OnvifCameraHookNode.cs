@@ -4,78 +4,119 @@ using Onvif.Core;
 using Onvif.Core.Client.Camera;
 using Onvif.Core.Client.Ptz;
 using System.Threading.Tasks;
-using System.Threading;
 
 [Tool]
 public partial class OnvifCameraHookNode : Node
 {
-	[Export]
-	public string ConnectionIP { get; set; } = "";
-	[Export]
-	public string ConnectionUsername { get; set; } = "";
-	[Export]
-	public string ConnectionPassword { get; set; } = "";
-	
-	public string ConnectionProfileToken { get; set; } = "";
-	[Export]
-	public Vector2 OriginAngle { get; set; } = new Vector2(0, 0);
-	public Vector2 Angle;
-	public float Width;
-	public float Height;
-	bool run = true;
+    // Connection settings
+    [Export]
+    public string ConnectionIP { get; set; } = "";
+    [Export]
+    public string ConnectionUsername { get; set; } = "";
+    [Export]
+    public string ConnectionPassword { get; set; } = "";
+    [Export]
+    public string ConnectionProfileToken { get; set; } = "";
+    [Export]
+    public Vector2 OriginAngle { get; set; } = new Vector2(0, 0);
+
+    // Camera control parameters
+    [Export]
+    public float LerpSpeed { get; set; } = 5f;
+    [Export]
+    public float UpdateInterval { get; set; } = 0.1f;
+    [Export]
+    public float MinFOV { get; set; } = 30f;
+    [Export]
+    public float MaxFOV { get; set; } = 90f;
+    [Export]
+    public float ZoomToFOVRatio { get; set; } = 0.5f;
+
+    // Internal state
+    private Vector3 _targetRotation;
+    private float _timeSinceLastUpdate = 0f;
+    private bool _isUpdating = false;
+    private bool _run = true;
+
 #nullable enable
-	public Camera? ONVIFCamera { get; set; } = null;
-	public Camera3D? GodotCamera { get; set; } = null;
+    public Camera? ONVIFCamera { get; set; } = null;
+    public Camera3D? GodotCamera { get; set; } = null;
 #nullable disable
-	//private CancellationTokenSource _cts;
-	public override void _EnterTree()
-	{
-		GodotCamera = GetParentOrNull<Camera3D>();
-		GD.Print(GodotCamera != null ? $"Attached to {GodotCamera.Name}" : "Attached to null");
-	}
-	public void Connect()
-	{
-		var account = new Account(ConnectionIP, ConnectionUsername, ConnectionPassword);
-		ONVIFCamera = Camera.Create(account, ex => { GD.PrintErr(ex); });
-	}
-	public async override void _Ready()
-	{
-		if (run)
-		{
-			Connect();
-			if (ONVIFCamera != null)
-			{
-				await GetProfileToken();
-				if (ConnectionProfileToken.Length != 0)
-				{
-					//var resolution = await GetCameraResolution();
-					//if (resolution != null)
-					//	GD.Print($"Resolution: {resolution.Value.X}x{resolution.Value.Y}");
-					//await PrintPtzLimits();
-					SynchronizeRotation();
-				}
-			}
-			GD.Print("Ready");
-		}
-	}
-	public async Task GetProfileToken()
-	{
-		var profiles = await ONVIFCamera.Media.GetProfilesAsync();
-		if (profiles.Profiles.Length != 0)
-			ConnectionProfileToken = profiles.Profiles[0].token;
-		else ConnectionProfileToken = "";
-	}
-	public async Task<Vector2?> GetCameraResolution()
+
+    public override void _EnterTree()
+    {
+        GodotCamera = GetParentOrNull<Camera3D>();
+        GD.Print(GodotCamera != null ? $"Attached to {GodotCamera.Name}" : "Attached to null");
+    }
+
+    public void Connect()
+    {
+        var account = new Account(ConnectionIP, ConnectionUsername, ConnectionPassword);
+        ONVIFCamera = Camera.Create(account, ex => { GD.PrintErr(ex); });
+    }
+
+    public async override void _Ready()
+    {
+        if (_run)
+        {
+            Connect();
+            if (ONVIFCamera != null)
+            {
+                await GetProfileToken();
+                if (ConnectionProfileToken.Length != 0)
+                {
+                    await CacheCameraParameters();
+                    SynchronizeRotation();
+                }
+            }
+            GD.Print("Camera plugin ready");
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (GodotCamera == null) return;
+
+        _timeSinceLastUpdate += (float)delta;
+        
+        GodotCamera.RotationDegrees = GodotCamera.RotationDegrees.Lerp(_targetRotation, LerpSpeed * (float)delta);
+        
+        if (_timeSinceLastUpdate >= UpdateInterval)
+        {
+            _timeSinceLastUpdate = 0f;
+            _ = GetCameraRotation();
+        }
+    }
+
+    public async Task GetProfileToken()
+    {
+        try
+        {
+            var profiles = await ONVIFCamera.Media.GetProfilesAsync();
+            ConnectionProfileToken = profiles.Profiles.Length != 0 ? profiles.Profiles[0].token : "";
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr("Failed to get profile token: " + ex.Message);
+            ConnectionProfileToken = "";
+        }
+    }
+
+    public async Task<Vector2?> GetCameraResolution()
     {
         if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return null;
 
-        var config = await ONVIFCamera.Media.GetVideoEncoderConfigurationAsync(ConnectionProfileToken);
-        if (config != null && config.Resolution != null)
+        try
         {
-            var width = config.Resolution.Width;
-            var height = config.Resolution.Height;
-            GD.Print($"Camera resolution: {width}x{height}");
-            return new Vector2(width, height);
+            var config = await ONVIFCamera.Media.GetVideoEncoderConfigurationAsync(ConnectionProfileToken);
+            if (config != null && config.Resolution != null)
+            {
+                return new Vector2(config.Resolution.Width, config.Resolution.Height);
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr("Failed to get camera resolution: " + ex.Message);
         }
         return null;
     }
@@ -84,38 +125,123 @@ public partial class OnvifCameraHookNode : Node
     {
         if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return;
 
-        var ptzConfig = await ONVIFCamera.Ptz.GetConfigurationAsync(ConnectionProfileToken);
-        var options = await ONVIFCamera.Ptz.GetConfigurationOptionsAsync(ptzConfig.token);
+        try
+        {
+            var ptzConfig = await ONVIFCamera.Ptz.GetConfigurationAsync(ConnectionProfileToken);
+            var options = await ONVIFCamera.Ptz.GetConfigurationOptionsAsync(ptzConfig.token);
 
-        var panTiltLimits = options.Spaces.AbsolutePanTiltPositionSpace[0];
-        var zoomLimits = options.Spaces.AbsoluteZoomPositionSpace[0];
-
-        GD.Print("Pan limits: ", panTiltLimits.XRange.Min, " to ", panTiltLimits.XRange.Max);
-        GD.Print("Tilt limits: ", panTiltLimits.YRange.Min, " to ", panTiltLimits.YRange.Max);
-        GD.Print("Zoom limits: ", zoomLimits.XRange.Min, " to ", zoomLimits.XRange.Max);
+            GD.Print("Pan limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Min, 
+                    " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Max);
+            GD.Print("Tilt limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Min, 
+                    " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Max);
+            GD.Print("Zoom limits: ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Min, 
+                    " to ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Max);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr("Failed to get PTZ limits: " + ex.Message);
+        }
     }
-	public async void SynchronizeRotation()
-	{
-		while (!Engine.IsEditorHint()) 
-		{
-			await GetCameraRotation();
-			//await Task.Delay(200);
-			GD.Print("Rotation:", GodotCamera.Rotation.X, GodotCamera.Rotation.Y);
-		}
-		GD.Print("Exited");
-	}
-	public async Task GetCameraRotation()
-	{
-		if (!Engine.IsEditorHint())
-		{
-			
-			var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
-			float pantilty = (float)(response.Position.PanTilt.x * 360 / Math.PI);
-			float pantiltx = (float)(response.Position.PanTilt.y * 90 / Math.PI);
-			//var pantilts = response.Position.PanTilt.space;
-			//var zoomx = response.Position.Zoom.x;
-			//var zooms = response.Position.Zoom.space;
-			GodotCamera.SetGlobalRotationDegrees(new Vector3(OriginAngle.X + pantiltx, OriginAngle.Y - pantilty, 0));
-		}
-	}
+
+    public async Task CacheCameraParameters()
+    {
+        if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return;
+        
+        try
+        {
+            var ptzConfig = await ONVIFCamera.Ptz.GetConfigurationAsync(ConnectionProfileToken);
+            var options = await ONVIFCamera.Ptz.GetConfigurationOptionsAsync(ptzConfig.token);
+            
+            GD.Print("Camera PTZ limits cached:");
+            GD.Print("Pan limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Min, 
+                    " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Max);
+            GD.Print("Tilt limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Min, 
+                    " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Max);
+            GD.Print("Zoom limits: ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Min, 
+                    " to ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Max);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr("Failed to cache camera parameters: " + ex.Message);
+        }
+    }
+
+    public async void SynchronizeRotation()
+    {
+        while (!Engine.IsEditorHint() && _run) 
+        {
+            await GetCameraRotation();
+            await Task.Delay((int)(UpdateInterval * 1000));
+        }
+        GD.Print("Camera synchronization stopped");
+    }
+
+    public async Task GetCameraRotation()
+    {
+        if (!Engine.IsEditorHint() && !_isUpdating && ONVIFCamera != null && ConnectionProfileToken.Length > 0)
+        {
+            try
+            {
+                _isUpdating = true;
+                var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
+                
+                float pan = (float)(response.Position.PanTilt.x * 360 / Math.PI);
+                float tilt = (float)(response.Position.PanTilt.y * 90 / Math.PI);
+                
+                _targetRotation = new Vector3(
+                    OriginAngle.X + tilt,
+                    OriginAngle.Y - pan,
+                    0
+                );
+
+                if (response.Position.Zoom != null)
+                {
+                    UpdateCameraFOV((float)response.Position.Zoom.x);
+                }
+            }
+            catch (Exception ex)
+            {
+                GD.PrintErr("Failed to get camera rotation: " + ex.Message);
+                TryReconnect();
+            }
+            finally
+            {
+                _isUpdating = false;
+            }
+        }
+    }
+
+    private void UpdateCameraFOV(float zoomLevel)
+    {
+        if (GodotCamera == null) return;
+        
+        float targetFOV = Mathf.Lerp(MaxFOV, MinFOV, zoomLevel * ZoomToFOVRatio);
+        GodotCamera.Fov = Mathf.Lerp(GodotCamera.Fov, targetFOV, 0.1f);
+    }
+
+    private async void TryReconnect()
+    {
+        GD.Print("Attempting to reconnect...");
+        await Task.Delay(5000);
+        
+        try
+        {
+            Connect();
+            await GetProfileToken();
+            if (ConnectionProfileToken.Length > 0)
+            {
+                await CacheCameraParameters();
+                GD.Print("Camera reconnected successfully");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr("Reconnect failed: " + ex.Message);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        _run = false;
+    }
 }
