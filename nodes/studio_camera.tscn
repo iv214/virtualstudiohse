@@ -23,12 +23,11 @@ cull_mask = 524287
 
 [node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D" node_paths=PackedStringArray("GodotCamera")]
 script = ExtResource("1_5ripa")
-ConnectionProfileToken = ""
 GodotCamera = NodePath("..")
-Angle = Vector2(0, 0)
-Width = 0.0
-Height = 0.0
-run = true
+_targetRotation = Vector3(0, 0, 0)
+_timeSinceLastUpdate = 0.0
+_isUpdating = false
+_run = false
 metadata/_custom_type_script = "uid://dgccavlbds52i"
 
 [node name="RemoteTransform3D" type="RemoteTransform3D" parent="."]

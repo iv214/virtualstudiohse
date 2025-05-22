@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://dule7iwy3bjyo"]
+[gd_scene load_steps=2 format=3 uid="uid://dule7iwy3bjyo"]
+
+[ext_resource type="Script" uid="uid://dqok2tywnshdc" path="res://gui/CameraViewer.cs" id="1_nsw84"]
 
 [node name="MainWindow" type="Control"]
 custom_minimum_size = Vector2(1000, 500)
@@ -63,6 +65,9 @@ projection = 1
 current = true
 
 [node name="CameraViewer" type="CanvasLayer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/Viewer"]
+script = ExtResource("1_nsw84")
+
+[node name="StudioContent" type="Node3D" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/Viewer/CameraViewer"]
 
 [node name="ViewerBar" type="Panel" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer"]
 custom_minimum_size = Vector2(500, 32)
