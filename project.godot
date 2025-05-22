@@ -22,4 +22,4 @@ project/assembly_name="projecthse"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/onvif_camera_hook/plugin.cfg")
+enabled=PackedStringArray("res://addons/onvif_camera_hook/plugin.cfg", "res://addons/studio_editor_tool/plugin.cfg")
