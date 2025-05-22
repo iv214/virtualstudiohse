@@ -6,6 +6,8 @@
 [node name="StudioCamera" type="Node3D"]
 script = ExtResource("1_q7y50")
 NDIOutputName = "godotndidefault"
+ViewportWidth = 1024
+ViewportHeight = 768
 
 [node name="SubViewport" type="SubViewport" parent="."]
 size = Vector2i(1024, 768)
