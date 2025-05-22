@@ -51,12 +51,14 @@ public partial class OnvifCameraHookNode : Node
 
     public void Connect()
     {
+        if (String.IsNullOrWhiteSpace(ConnectionIP)) ONVIFCamera = null;
         var account = new Account(ConnectionIP, ConnectionUsername, ConnectionPassword);
         ONVIFCamera = Camera.Create(account, ex => { GD.PrintErr(ex); });
     }
 
     public async override void _Ready()
     {
+        if (Engine.IsEditorHint()) return;
         if (_run)
         {
             Connect();

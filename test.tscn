@@ -1,9 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://cb3l4vhpmmd5f"]
+[gd_scene load_steps=10 format=3 uid="uid://cb3l4vhpmmd5f"]
 
 [ext_resource type="Texture2D" uid="uid://0bpfv7cdkld0" path="res://assets/KPNO-Drone-360-2-CC2.jpg" id="1_6uqi0"]
 [ext_resource type="Script" uid="uid://6fty6rppvfhv" path="res://MeshInstance3d.cs" id="1_ppyta"]
 [ext_resource type="Texture2D" uid="uid://b0uholafhcp3n" path="res://assets/test_background.png" id="2_8uh7m"]
-[ext_resource type="PackedScene" uid="uid://jv47wpgaua0i" path="res://nodes/studio_camera.tscn" id="4_ppyta"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_mf4mk"]
 
@@ -40,15 +39,5 @@ transform = Transform3D(20, 0, 0, 0, -2.1541e-07, -16.083, 0, 4.928, -7.0301e-07
 visible = false
 material_override = SubResource("StandardMaterial3D_6uqi0")
 mesh = SubResource("PlaneMesh_ppyta")
-
-[node name="StudioCamera" parent="." instance=ExtResource("4_ppyta")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.78318, 0, 0)
-
-[node name="StudioCamera2" parent="." instance=ExtResource("4_ppyta")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
-NDIOutputName = "godotndidefault2"
-ConnectionIP = "172.18.191.196:80"
-ConnectionUsername = "admin"
-ConnectionPassword = "Supervisor"
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
