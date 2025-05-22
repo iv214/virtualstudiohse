@@ -51,7 +51,11 @@ public partial class OnvifCameraHookNode : Node
 
     public void Connect()
     {
-        if (String.IsNullOrWhiteSpace(ConnectionIP)) ONVIFCamera = null;
+        if (String.IsNullOrWhiteSpace(ConnectionIP))
+        {
+            ONVIFCamera = null;
+            return;
+        }
         var account = new Account(ConnectionIP, ConnectionUsername, ConnectionPassword);
         ONVIFCamera = Camera.Create(account, ex => { GD.PrintErr(ex); });
     }

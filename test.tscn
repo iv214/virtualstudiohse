@@ -1,8 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://cb3l4vhpmmd5f"]
+[gd_scene load_steps=12 format=3 uid="uid://cb3l4vhpmmd5f"]
 
 [ext_resource type="Texture2D" uid="uid://0bpfv7cdkld0" path="res://assets/KPNO-Drone-360-2-CC2.jpg" id="1_6uqi0"]
 [ext_resource type="Script" uid="uid://6fty6rppvfhv" path="res://MeshInstance3d.cs" id="1_ppyta"]
 [ext_resource type="Texture2D" uid="uid://b0uholafhcp3n" path="res://assets/test_background.png" id="2_8uh7m"]
+[ext_resource type="PackedScene" uid="uid://jv47wpgaua0i" path="res://addons/godot-studio/studio_camera.tscn" id="4_ppyta"]
+[ext_resource type="Script" uid="uid://24gu8vyh84rw" path="res://addons/godot-studio/StudioCamera.cs" id="5_ykrsh"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_mf4mk"]
 
@@ -41,3 +43,9 @@ material_override = SubResource("StandardMaterial3D_6uqi0")
 mesh = SubResource("PlaneMesh_ppyta")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
+
+[node name="StudioCamera" type="Node3D" parent="." instance=ExtResource("4_ppyta")]
+script = ExtResource("5_ykrsh")
+NDIOutputName = "GODOTNDI1"
+ViewportWidth = 1920
+ViewportHeight = 1080

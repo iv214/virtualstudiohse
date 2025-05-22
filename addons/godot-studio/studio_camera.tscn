@@ -6,10 +6,8 @@
 [node name="StudioCamera" type="Node3D" node_paths=PackedStringArray("_subviewport", "_ndioutput", "_camera", "_onvifhook")]
 script = ExtResource("1_q7y50")
 NDIOutputName = "godotndidefault"
-_subviewport = NodePath("SubViewport")
-_ndioutput = NodePath("SubViewport/NDIOutput")
-_camera = NodePath("SubViewport/Camera3D")
-_onvifhook = NodePath("SubViewport/Camera3D/OnvifCameraHookNode")
+ViewportWidth = 1024
+ViewportHeight = 768
 
 [node name="SubViewport" type="SubViewport" parent="."]
 size = Vector2i(1024, 768)
