@@ -1,0 +1,1 @@
+onvif_zeep_async==3.2.5
