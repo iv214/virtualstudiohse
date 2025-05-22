@@ -3,9 +3,13 @@
 [ext_resource type="Script" uid="uid://dgccavlbds52i" path="res://addons/onvif_camera_hook/OnvifCameraHookNode.cs" id="1_5ripa"]
 [ext_resource type="Script" uid="uid://24gu8vyh84rw" path="res://nodes/StudioCamera.cs" id="1_q7y50"]
 
-[node name="StudioCamera" type="Node3D"]
+[node name="StudioCamera" type="Node3D" node_paths=PackedStringArray("_subviewport", "_ndioutput", "_camera", "_onvifhook")]
 script = ExtResource("1_q7y50")
 NDIOutputName = "godotndidefault"
+_subviewport = NodePath("SubViewport")
+_ndioutput = NodePath("SubViewport/NDIOutput")
+_camera = NodePath("SubViewport/Camera3D")
+_onvifhook = NodePath("SubViewport/Camera3D/OnvifCameraHookNode")
 
 [node name="SubViewport" type="SubViewport" parent="."]
 size = Vector2i(1024, 768)
@@ -17,8 +21,14 @@ name = "godotndidefault"
 [node name="Camera3D" type="Camera3D" parent="SubViewport"]
 cull_mask = 524287
 
-[node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D"]
+[node name="OnvifCameraHookNode" type="Node" parent="SubViewport/Camera3D" node_paths=PackedStringArray("GodotCamera")]
 script = ExtResource("1_5ripa")
+ConnectionProfileToken = ""
+GodotCamera = NodePath("..")
+Angle = Vector2(0, 0)
+Width = 0.0
+Height = 0.0
+run = true
 metadata/_custom_type_script = "uid://dgccavlbds52i"
 
 [node name="RemoteTransform3D" type="RemoteTransform3D" parent="."]

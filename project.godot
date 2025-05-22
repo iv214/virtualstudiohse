@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="projecthse"
-run/main_scene="uid://cb3l4vhpmmd5f"
+run/main_scene="uid://dule7iwy3bjyo"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 run/max_fps=60
 config/icon="res://icon.svg"

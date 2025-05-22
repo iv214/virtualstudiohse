@@ -41,14 +41,22 @@ visible = false
 material_override = SubResource("StandardMaterial3D_6uqi0")
 mesh = SubResource("PlaneMesh_ppyta")
 
-[node name="StudioCamera" parent="." instance=ExtResource("4_ppyta")]
+[node name="StudioCamera" parent="." node_paths=PackedStringArray("_subviewport", "_ndioutput", "_camera", "_onvifhook") instance=ExtResource("4_ppyta")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.78318, 0, 0)
+_subviewport = NodePath("SubViewport")
+_ndioutput = NodePath("SubViewport/NDIOutput")
+_camera = NodePath("SubViewport/Camera3D")
+_onvifhook = NodePath("SubViewport/Camera3D/OnvifCameraHookNode")
 
-[node name="StudioCamera2" parent="." instance=ExtResource("4_ppyta")]
+[node name="StudioCamera2" parent="." node_paths=PackedStringArray("_subviewport", "_ndioutput", "_camera", "_onvifhook") instance=ExtResource("4_ppyta")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
 NDIOutputName = "godotndidefault2"
 ConnectionIP = "172.18.191.196:80"
 ConnectionUsername = "admin"
 ConnectionPassword = "Supervisor"
+_subviewport = NodePath("SubViewport")
+_ndioutput = NodePath("SubViewport/NDIOutput")
+_camera = NodePath("SubViewport/Camera3D")
+_onvifhook = NodePath("SubViewport/Camera3D/OnvifCameraHookNode")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
