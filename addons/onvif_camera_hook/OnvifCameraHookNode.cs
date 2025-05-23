@@ -206,9 +206,9 @@ public partial class OnvifCameraHookNode : Node
     {
         if (GodotCamera == null) return;
 
-        //float targetFOV = Mathf.Lerp(MaxFOV, MinFOV, zoomLevel * ZoomToFOVRatio);
-        //GodotCamera.Fov = Mathf.Lerp(GodotCamera.Fov, targetFOV, 0.1f);
-        GodotCamera.Fov = Math.Min((float)((0.5 - (0.325 + zoomLevel * 0.17)) * 360), 0.1f);
+        float targetFOV = 63f * Mathf.Pow(1 - zoomLevel, 1.5f);
+        targetFOV = Math.Clamp(targetFOV, 2f, 63f);
+        GodotCamera.Fov = Mathf.Lerp(GodotCamera.Fov, targetFOV, 0.1f);
     }
 
     private async void TryReconnect()
