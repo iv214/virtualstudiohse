@@ -26,7 +26,7 @@ public partial class OnvifCameraHookNode : Node
     [Export]
     public float UpdateInterval { get; set; } = 0.1f;
     [Export]
-    public float MinFOV { get; set; } = 30f;
+    public float MinFOV { get; set; } = 0.1f;
     [Export]
     public float MaxFOV { get; set; } = 90f;
     [Export]
@@ -205,9 +205,10 @@ public partial class OnvifCameraHookNode : Node
     private void UpdateCameraFOV(float zoomLevel)
     {
         if (GodotCamera == null) return;
-        
-        float targetFOV = Mathf.Lerp(MaxFOV, MinFOV, zoomLevel * ZoomToFOVRatio);
-        GodotCamera.Fov = Mathf.Lerp(GodotCamera.Fov, targetFOV, 0.1f);
+
+        //float targetFOV = Mathf.Lerp(MaxFOV, MinFOV, zoomLevel * ZoomToFOVRatio);
+        //GodotCamera.Fov = Mathf.Lerp(GodotCamera.Fov, targetFOV, 0.1f);
+        GodotCamera.Fov = Math.Min((float)((0.5 - (0.325 + zoomLevel * 0.17)) * 360), 0.1f);
     }
 
     private async void TryReconnect()
