@@ -41,6 +41,14 @@ public partial class OnvifCameraHookNode : Node
 #nullable enable
     public Camera? ONVIFCamera { get; set; } = null;
     public Camera3D? GodotCamera { get; set; } = null;
+
+    private float? _pan_min = null;
+    private float? _pan_max = null;
+    private float? _tilt_min = null;
+    private float? _tilt_max = null;
+    private float? _zoom_min = null;
+    private float? _zoom_max = null;
+
 #nullable disable
 
     public override void _EnterTree()
@@ -71,7 +79,7 @@ public partial class OnvifCameraHookNode : Node
                 await GetProfileToken();
                 if (ConnectionProfileToken.Length != 0)
                 {
-                    await CacheCameraParameters();
+                    //await CacheCameraParameters();
                     SynchronizeRotation();
                 }
             }
@@ -126,30 +134,7 @@ public partial class OnvifCameraHookNode : Node
         }
         return null;
     }
-
-    public async Task PrintPtzLimits()
-    {
-        if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return;
-
-        try
-        {
-            var ptzConfig = await ONVIFCamera.Ptz.GetConfigurationAsync(ConnectionProfileToken);
-            var options = await ONVIFCamera.Ptz.GetConfigurationOptionsAsync(ptzConfig.token);
-
-            GD.Print("Pan limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Min, 
-                    " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Max);
-            GD.Print("Tilt limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Min, 
-                    " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Max);
-            GD.Print("Zoom limits: ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Min, 
-                    " to ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Max);
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr("Failed to get PTZ limits: " + ex.Message);
-        }
-    }
-
-    public async Task CacheCameraParameters()
+    public async Task GetCameraParameters()
     {
         if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return;
         
@@ -158,7 +143,7 @@ public partial class OnvifCameraHookNode : Node
             var ptzConfig = await ONVIFCamera.Ptz.GetConfigurationAsync(ConnectionProfileToken);
             var options = await ONVIFCamera.Ptz.GetConfigurationOptionsAsync(ptzConfig.token);
             
-            GD.Print("Camera PTZ limits cached:");
+            GD.Print("Camera PTZ limits:");
             GD.Print("Pan limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Min, 
                     " to ", options.Spaces.AbsolutePanTiltPositionSpace[0].XRange.Max);
             GD.Print("Tilt limits: ", options.Spaces.AbsolutePanTiltPositionSpace[0].YRange.Min, 
@@ -191,9 +176,9 @@ public partial class OnvifCameraHookNode : Node
                 _isUpdating = true;
                 var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
                 
-                float pan = (float)(response.Position.PanTilt.x * 360 / Math.PI);
+                float pan = (float)(response.Position.PanTilt.x * 180);
                 float tilt = (float)(response.Position.PanTilt.y * 90 / Math.PI);
-                
+
                 _targetRotation = new Vector3(
                     OriginAngle.X + tilt,
                     OriginAngle.Y - pan,
@@ -236,7 +221,7 @@ public partial class OnvifCameraHookNode : Node
             await GetProfileToken();
             if (ConnectionProfileToken.Length > 0)
             {
-                await CacheCameraParameters();
+                //await CacheCameraParameters();
                 GD.Print("Camera reconnected successfully");
             }
         }

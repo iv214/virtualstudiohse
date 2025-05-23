@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://6fty6rppvfhv" path="res://MeshInstance3d.cs" id="1_ppyta"]
 [ext_resource type="Texture2D" uid="uid://b0uholafhcp3n" path="res://assets/test_background.png" id="2_8uh7m"]
 [ext_resource type="PackedScene" uid="uid://jv47wpgaua0i" path="res://addons/godot-studio/studio_camera.tscn" id="4_ppyta"]
-[ext_resource type="Script" uid="uid://24gu8vyh84rw" path="res://addons/godot-studio/StudioCamera.cs" id="5_ykrsh"]
+[ext_resource type="PackedScene" uid="uid://plsny4lg5uar" path="res://studio/studio.tscn" id="5_ykrsh"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_mf4mk"]
 
@@ -28,24 +28,29 @@ albedo_texture = ExtResource("2_8uh7m")
 
 [node name="Node3D" type="Node3D"]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.932425, 0, -0.361364, 0, 1, 0, 0.361364, 0, 0.932425, 3, 0, -7)
+[node name="Cube" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.932425, 0, -0.361364, 0, 1, 0, 0.361364, 0, 0.932425, 3, 1, -7)
 mesh = SubResource("BoxMesh_mf4mk")
 script = ExtResource("1_ppyta")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_mf4mk")
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
-transform = Transform3D(20, 0, 0, 0, -2.1541e-07, -16.083, 0, 4.928, -7.0301e-07, 9.27359, 0, -4.7875)
+[node name="2D background example" type="MeshInstance3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, -2.1541e-07, -16.083, 0, 4.928, -7.0301e-07, 3.83477, 0, -8.82366)
 visible = false
 material_override = SubResource("StandardMaterial3D_6uqi0")
 mesh = SubResource("PlaneMesh_ppyta")
 
-[node name="Sprite3D" type="Sprite3D" parent="."]
+[node name="Studio" parent="." instance=ExtResource("5_ykrsh")]
 
-[node name="StudioCamera" type="Node3D" parent="." instance=ExtResource("4_ppyta")]
-script = ExtResource("5_ykrsh")
-NDIOutputName = "GODOTNDI1"
-ViewportWidth = 1920
-ViewportHeight = 1080
+[node name="StudioCamera" parent="." instance=ExtResource("4_ppyta")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, 1.5, 0)
+NDIOutputName = "CAMERA1"
+
+[node name="StudioCamera2" parent="." instance=ExtResource("4_ppyta")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.45, 1.5, 0)
+NDIOutputName = "CAMERA2"
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.45, 1.5, 0)
