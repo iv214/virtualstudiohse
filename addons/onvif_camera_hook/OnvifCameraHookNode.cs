@@ -4,7 +4,6 @@ using Onvif.Core;
 using Onvif.Core.Client.Camera;
 using Onvif.Core.Client.Ptz;
 using System.Threading.Tasks;
-using System.Threading;
 
 [Tool]
 public partial class OnvifCameraHookNode : Node
@@ -38,8 +37,6 @@ public partial class OnvifCameraHookNode : Node
     private float _timeSinceLastUpdate = 0f;
     private bool _isUpdating = false;
     private bool _run = true;
-    private bool _isReconnecting = false;
-    private CancellationTokenSource _cts = new CancellationTokenSource();
 
 #nullable enable
     public Camera? ONVIFCamera { get; set; } = null;
@@ -62,24 +59,13 @@ public partial class OnvifCameraHookNode : Node
 
     public void Connect()
     {
-        try
+        if (String.IsNullOrWhiteSpace(ConnectionIP))
         {
-            if (String.IsNullOrWhiteSpace(ConnectionIP))
-            {
-                ONVIFCamera = null;
-                return;
-            }
-            var account = new Account(ConnectionIP, ConnectionUsername, ConnectionPassword);
-            ONVIFCamera = Camera.Create(account, ex => { 
-                GD.PrintErr("Camera error: " + ex); 
-                CallDeferred(nameof(TryReconnect));
-            });
+            ONVIFCamera = null;
+            return;
         }
-        catch (Exception ex)
-        {
-            GD.PrintErr("Connection failed: " + ex.Message);
-            CallDeferred(nameof(TryReconnect));
-        }
+        var account = new Account(ConnectionIP, ConnectionUsername, ConnectionPassword);
+        ONVIFCamera = Camera.Create(account, ex => { GD.PrintErr(ex); });
     }
 
     public async override void _Ready()
@@ -90,9 +76,10 @@ public partial class OnvifCameraHookNode : Node
             Connect();
             if (ONVIFCamera != null)
             {
-                await GetProfileToken(_cts.Token);
+                await GetProfileToken();
                 if (ConnectionProfileToken.Length != 0)
                 {
+                    //await CacheCameraParameters();
                     SynchronizeRotation();
                 }
             }
@@ -111,21 +98,16 @@ public partial class OnvifCameraHookNode : Node
         if (_timeSinceLastUpdate >= UpdateInterval)
         {
             _timeSinceLastUpdate = 0f;
-            _ = GetCameraRotation(_cts.Token);
+            _ = GetCameraRotation();
         }
     }
 
-    public async Task GetProfileToken(CancellationToken ct = default)
+    public async Task GetProfileToken()
     {
         try
         {
-            ct.ThrowIfCancellationRequested();
             var profiles = await ONVIFCamera.Media.GetProfilesAsync();
             ConnectionProfileToken = profiles.Profiles.Length != 0 ? profiles.Profiles[0].token : "";
-        }
-        catch (OperationCanceledException)
-        {
-            GD.Print("Profile token request cancelled");
         }
         catch (Exception ex)
         {
@@ -134,22 +116,17 @@ public partial class OnvifCameraHookNode : Node
         }
     }
 
-    public async Task<Vector2?> GetCameraResolution(CancellationToken ct = default)
+    public async Task<Vector2?> GetCameraResolution()
     {
         if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return null;
 
         try
         {
-            ct.ThrowIfCancellationRequested();
             var config = await ONVIFCamera.Media.GetVideoEncoderConfigurationAsync(ConnectionProfileToken);
             if (config != null && config.Resolution != null)
             {
                 return new Vector2(config.Resolution.Width, config.Resolution.Height);
             }
-        }
-        catch (OperationCanceledException)
-        {
-            GD.Print("Camera resolution request cancelled");
         }
         catch (Exception ex)
         {
@@ -157,14 +134,12 @@ public partial class OnvifCameraHookNode : Node
         }
         return null;
     }
-
-    public async Task GetCameraParameters(CancellationToken ct = default)
+    public async Task GetCameraParameters()
     {
         if (ONVIFCamera == null || ConnectionProfileToken.Length == 0) return;
         
         try
         {
-            ct.ThrowIfCancellationRequested();
             var ptzConfig = await ONVIFCamera.Ptz.GetConfigurationAsync(ConnectionProfileToken);
             var options = await ONVIFCamera.Ptz.GetConfigurationOptionsAsync(ptzConfig.token);
             
@@ -176,10 +151,6 @@ public partial class OnvifCameraHookNode : Node
             GD.Print("Zoom limits: ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Min, 
                     " to ", options.Spaces.AbsoluteZoomPositionSpace[0].XRange.Max);
         }
-        catch (OperationCanceledException)
-        {
-            GD.Print("Camera parameters request cancelled");
-        }
         catch (Exception ex)
         {
             GD.PrintErr("Failed to cache camera parameters: " + ex.Message);
@@ -190,49 +161,44 @@ public partial class OnvifCameraHookNode : Node
     {
         while (!Engine.IsEditorHint() && _run) 
         {
-            await GetCameraRotation(_cts.Token);
-            await ToSignal(GetTree().CreateTimer(UpdateInterval), "timeout");
+            await GetCameraRotation();
+            await Task.Delay((int)(UpdateInterval * 1000));
         }
         GD.Print("Camera synchronization stopped");
     }
 
-    public async Task GetCameraRotation(CancellationToken ct = default)
+    public async Task GetCameraRotation()
     {
-        if (Engine.IsEditorHint() || _isUpdating || ONVIFCamera == null || ConnectionProfileToken.Length == 0)
-            return;
-
-        try
+        if (!Engine.IsEditorHint() && !_isUpdating && ONVIFCamera != null && ConnectionProfileToken.Length > 0)
         {
-            _isUpdating = true;
-            ct.ThrowIfCancellationRequested();
-            var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
-            
-            float pan = (float)(response.Position.PanTilt.x * 180);
-            float tilt = (float)(response.Position.PanTilt.y * 90 / Math.PI);
-
-            _targetRotation = new Vector3(
-                OriginAngle.X + tilt,
-                OriginAngle.Y - pan,
-                0
-            );
-
-            if (response.Position.Zoom != null)
+            try
             {
-                UpdateCameraFOV((float)response.Position.Zoom.x);
+                _isUpdating = true;
+                var response = await ONVIFCamera.Ptz.GetStatusAsync(ConnectionProfileToken);
+                
+                float pan = (float)(response.Position.PanTilt.x * 180);
+                float tilt = (float)(response.Position.PanTilt.y * 90 / Math.PI);
+
+                _targetRotation = new Vector3(
+                    OriginAngle.X + tilt,
+                    OriginAngle.Y - pan,
+                    0
+                );
+
+                if (response.Position.Zoom != null)
+                {
+                    UpdateCameraFOV((float)response.Position.Zoom.x);
+                }
             }
-        }
-        catch (OperationCanceledException)
-        {
-            GD.Print("Camera rotation update cancelled");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr("Failed to get camera rotation: " + ex.Message);
-            TryReconnect();
-        }
-        finally
-        {
-            _isUpdating = false;
+            catch (Exception ex)
+            {
+                GD.PrintErr("Failed to get camera rotation: " + ex.Message);
+                TryReconnect();
+            }
+            finally
+            {
+                _isUpdating = false;
+            }
         }
     }
 
@@ -247,18 +213,16 @@ public partial class OnvifCameraHookNode : Node
 
     private async void TryReconnect()
     {
-        if (_isReconnecting) return;
-        
-        _isReconnecting = true;
         GD.Print("Attempting to reconnect...");
+        await Task.Delay(5000);
         
         try
         {
-            await ToSignal(GetTree().CreateTimer(5.0), "timeout");
             Connect();
-            await GetProfileToken(_cts.Token);
+            await GetProfileToken();
             if (ConnectionProfileToken.Length > 0)
             {
+                //await CacheCameraParameters();
                 GD.Print("Camera reconnected successfully");
             }
         }
@@ -266,16 +230,10 @@ public partial class OnvifCameraHookNode : Node
         {
             GD.PrintErr("Reconnect failed: " + ex.Message);
         }
-        finally
-        {
-            _isReconnecting = false;
-        }
     }
 
     public override void _ExitTree()
     {
         _run = false;
-        _cts.Cancel();
-        _cts.Dispose();
     }
 }
