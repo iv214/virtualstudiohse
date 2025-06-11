@@ -1,8 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://jv47wpgaua0i"]
+[gd_scene load_steps=3 format=3 uid="uid://jv47wpgaua0i"]
 
 [ext_resource type="Script" uid="uid://dgccavlbds52i" path="res://addons/onvif_camera_hook/OnvifCameraHookNode.cs" id="1_5ripa"]
+[ext_resource type="Script" uid="uid://24gu8vyh84rw" path="res://addons/godot-studio/StudioCamera.cs" id="1_q7y50"]
 
 [node name="StudioCamera" type="Node3D"]
+script = ExtResource("1_q7y50")
+NDIOutputName = "godotndidefault"
+ViewportWidth = 1024
+ViewportHeight = 768
 
 [node name="SubViewport" type="SubViewport" parent="."]
 size = Vector2i(1024, 768)
